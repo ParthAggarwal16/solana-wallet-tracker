@@ -137,10 +137,17 @@ Learn more about the power of Turborepo:
 - [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
 
 apps/backend/src/ws
+
 -ONLY connection lifecycle, nothing Solana-specific
+
 apps/backend/src/solana
+
 -ONLY Solana subscriptions + decoding
+
 apps/backend/src/http
+
 -REST endpoints (auth, health, config)
+
 packages/shared
+
 -Types, protocol contracts, NO logic
