@@ -1,0 +1,1 @@
+//fastify instance and plugins
