@@ -1,0 +1,1 @@
+//standard error shapes (code, message)
