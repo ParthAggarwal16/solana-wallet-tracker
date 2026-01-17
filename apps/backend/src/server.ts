@@ -15,3 +15,9 @@ server.get("/wallet/:id", async (request) => {
 
 server.listen ({ port : 8080 })
 
+server.get("/wallet/:id?network=solana", async (request) => {
+    const networkName = request.query as { networkName : string}
+    return {
+        foundNetwork : networkName
+    }
+})
