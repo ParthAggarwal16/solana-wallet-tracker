@@ -7,10 +7,13 @@ const server = fastify()        //here server is not necceserily a fastify serve
 
 //my first shot at path and query parametres
 
-server.get("/wallet/:id", async (request) => {                  //method used to register a route with path (in this case is "/wallet/:id")
-                                                                // with a handler (my function) , async means the function will return a prmoise 
-                                                                //then fastify will await it and send the resoved value as a HTTP response 
-                                                                //without async , i will have to manually send replies
+server.get("/wallet/:id", async (request) => {                  
+    //method used to register a route with path (in this case is "/wallet/:id")
+    // with a handler (my function) , async means the function will return a prmoise 
+    //then fastify will await it and send the resoved value as a HTTP response 
+    //without async , i will have to manually send replies
+    //basically , const { id } = request.params is pretty much just const id = request.params.id
+
     const { id } = request.params as { id: string }             
     const { network } = request.query as { network?: string }
 
