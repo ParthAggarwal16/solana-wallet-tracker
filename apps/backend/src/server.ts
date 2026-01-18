@@ -7,7 +7,7 @@ const server = fastify()        //here server is not necceserily a fastify serve
 
 //my first shot at path and query parametres
 
-server.get("/wallet/:id", async (request) => {                  
+server.get("/wallet/:id", async (request, reply) => {                  
     //method used to register a route with path (in this case is "/wallet/:id")
     // with a handler (my function) , async means the function will return a prmoise 
     //then fastify will await it and send the resoved value as a HTTP response 
@@ -19,7 +19,18 @@ server.get("/wallet/:id", async (request) => {
         network?: unknown
     }
 
-    
+    if (typeof body !== "object" || body === null) {
+        return reply.status(400).send({ error: "Invalid JSON body" })
+    }
+
+    if (typeof body.address !== "string") {
+        return reply.status(400).send({ error: "address must be a string" })
+    }
+
+    if (body.network !== undefined && typeof body.network !== "string") {
+        return reply.status(400).send({ error: "network must be a string" })
+    }
+
     const { id } = request.params as { id: string }             
     const { network } = request.query as { network?: string }
 
