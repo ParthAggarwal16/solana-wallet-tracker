@@ -14,6 +14,12 @@ server.get("/wallet/:id", async (request) => {
     //without async , i will have to manually send replies
     //basically , const { id } = request.params is pretty much just const id = request.params.id
 
+    const body = request.body as {
+        address?: unknown 
+        network?: unknown
+    }
+
+    
     const { id } = request.params as { id: string }             
     const { network } = request.query as { network?: string }
 
