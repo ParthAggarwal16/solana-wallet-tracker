@@ -42,6 +42,6 @@ server.post("/wallet", {
     walletAddress: address,
     network
   }
-}
+})
 
 server.listen({ port: 8080 })
