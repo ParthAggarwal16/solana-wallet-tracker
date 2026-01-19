@@ -1,6 +1,7 @@
 //fastify instance and plugins 
 
 import fastify from "fastify"
+import sensible from "@fastify/sensible"
 
     //method used to register a route with path (in this case is "/wallet/:id")
     // with a handler (my function) , async means the function will return a prmoise 
@@ -38,6 +39,23 @@ server.post("/wallet", {
     network: string
   }
 
+  // domain level verification 
+
+  if (!address.startsWith("So")) {
+    throw server.httpErrors.badRequest ("invalid solana address")
+  }
+
+  //unsupported feature 
+
+  if (network != "solana") { 
+    throw server.httpErrors.notImplemented ("only solana is supported")
+  }
+
+  // simulated internal feature 
+  const rpcHealthy = false
+  if (!rpcHealthy) {
+    throw new Error ("solana is down")
+  }
   return {
     walletAddress: address,
     network
