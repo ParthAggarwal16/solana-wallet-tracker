@@ -1,3 +1,6 @@
+<img width="883" height="742" alt="image" src="https://github.com/user-attachments/assets/66783e02-3d19-4299-9cc8-bc45155fc56f" />
+
+
 readme to be done
 
 HEAD
