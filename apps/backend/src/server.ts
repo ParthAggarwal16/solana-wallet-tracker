@@ -1,4 +1,8 @@
-//fastify instance and plugins 
+//fastify instance and plugins
+
+//main fastify mental model
+// request → parsing → schema validation → preHandler →
+// handler → response serialization → send
 
 import fastify from "fastify"
 import sensible from "@fastify/sensible"
@@ -62,4 +66,9 @@ server.post("/wallet", {
   }
 })
 
-server.listen({ port: 8080 })
+server.listen({ port: 8080 }, function (err, address) {
+  if (err) {
+    server.log.error(err)
+    process.exit(1)
+  }
+})
