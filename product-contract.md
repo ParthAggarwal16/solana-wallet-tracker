@@ -2,6 +2,7 @@ the main markdown file :
 
 version 1 :
 --- PRODUCT SCOPE :
+
 this app lets user sign in (email) , add wallets (phantom , metamask , backpack)
 then user can track all the tranactions at one place with graphs showing different wallet
 tracjectries
