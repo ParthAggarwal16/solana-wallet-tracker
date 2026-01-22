@@ -7,3 +7,5 @@ then user can track all the tranactions at one place with graphs showing differe
 tracjectries
 this will also have basic features like showing TPS , count , solana market graph
 and some more things which will be decided as the project goes on
+
+i will figure out the inquiries in the API today
