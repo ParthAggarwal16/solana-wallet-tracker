@@ -34,6 +34,7 @@ interface TransactionState {
     amountLamports : number
     feeLamports : number
     success : boolean
+    createdAt : Date
 }
 
 // defining ingestion models 
