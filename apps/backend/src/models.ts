@@ -5,38 +5,45 @@
 // ingestion : walletaddress, lastproccessedSlot, lastprocessedSignature, updatedAt
 
 //defining the user models
-interface user {
-    userID : string
+interface User {
+    id : string
     email : string
     createdAt : Date
 }
 
 //defining wallet interface 
-interface wallet {
-    walletID : string
-    userID : string
-    walletAddress : string
-    chain : string | "solana"
-    walletCreatedAt : Date
+
+type Chain = "solana"
+interface Wallet {
+    id : string
+    userId : string
+    address : string
+    chain : Chain
+    createdAt : Date
 }
 
 // defining transaction state interface 
-interface transactionState {
+
+type Direction = "incoming" | "outgoing"
+interface TransactionState {
     signature : string
     slot : number 
     walletAddress : string
-    blockTime : null
-    direction : string | "incoming" | "outgoing"
-    amount : number
-    fee : number
+    blockTime?: number          // unix timestamp (seconds)
+    direction : Direction
+    amountLamports : number
+    feeLamports : number
     success : boolean
 }
 
 // defining ingestion models 
-interface ingestion {
+
+type IngestionStatus = "healthy" | "lagging" | "failed"
+interface IngestionState {
     walletAddress : string 
-    lastprocessedSlot : number
-    lastproccessedSignature : string
+    lastProcessedSlot : number
+    lastProcessedSignature : string
+    status : IngestionStatus
     updatedAt : Date
 }
 
