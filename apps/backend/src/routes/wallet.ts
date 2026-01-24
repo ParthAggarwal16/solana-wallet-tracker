@@ -18,3 +18,21 @@
 // GET /healthy :
 // backend liveliness 
 // ingestion subsystem status (aggregate)
+
+import { FastifyInstance } from "fastify"
+
+export async function walletRoutes(server : FastifyInstance) {
+
+    server.get ("/wallet/health", async() => {
+        return {status : "ok"}
+    })
+
+    server.get ("/wallet", async() => {
+        return []
+    })
+
+    server.get ("/wallet", async() => {
+        return {created : true}
+    })
+}
+
