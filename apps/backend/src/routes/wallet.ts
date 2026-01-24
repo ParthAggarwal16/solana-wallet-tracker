@@ -23,14 +23,17 @@ import { FastifyInstance } from "fastify"
 
 export async function walletRoutes(server : FastifyInstance) {
 
+    // health/sanity routes for wallet domain 
     server.get ("/wallet/health", async() => {
         return {status : "ok"}
     })
 
-    server.get ("/wallet", async() => {
+    // placeholders: list wallets 
+    server.get ("/wallets", async() => {
         return []
     })
 
+    // placeholder: add wallets
     server.get ("/wallet", async() => {
         return {created : true}
     })

@@ -1,6 +1,7 @@
 //fastify instance and plugins
 
 import fastify from "fastify"
+import { walletRoutes } from "./routes/wallet"
 
 const server = fastify()
 
