@@ -34,7 +34,7 @@ export async function walletRoutes(server : FastifyInstance) {
     })
 
     // placeholder: add wallets
-    server.get ("/wallet", async() => {
+    server.post ("/wallet", async() => {
         return {created : true}
     })
 }
