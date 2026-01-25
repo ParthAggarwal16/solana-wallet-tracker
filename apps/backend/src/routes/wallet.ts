@@ -34,7 +34,31 @@ export async function walletRoutes(server : FastifyInstance) {
     })
 
     // placeholder: add wallets
-    server.post ("/wallet", async(request, reply) => {
+    server.post ("/wallet", {
+        schema: {
+            body: {
+                type: "object",
+                required : ["address"], 
+                properties: {
+                    address: {type : "string", minLength : "1" },
+                    chain : {type : "string", enum: "solana", default : "solana"}
+                }
+            },
+            response: {
+                201: {
+                    type : "object",
+                    required : ["walletId", "address", "chain", "ingestionStatus"],
+                    properties : {
+                        walletId : {type : "string"},
+                        address : {type : "string"},
+                        chain : {type : "string"},
+                        ingestionStatus : {type : "string", enum : ["healthy", "lagging", "failed"]}
+                    }
+                }
+            }
+
+        }
+    },  async(request, reply) => {
         const {address, chain = "solana"} = request.body as {
             address : string
             chain? : "solana"
