@@ -29,8 +29,35 @@ export async function walletRoutes(server : FastifyInstance) {
     })
 
     // placeholders: list wallets 
-    server.get ("/wallets", async() => {
-        return []
+    server.get ("/wallets", {
+        schema : { 
+            response : {
+                200 : {
+                    type : "object",
+                    required : ["wallets"],
+                    properties : {
+                        wallets : {type : "array",
+                            items : {
+                                type : "object",
+                                required : ["walletId", "address","chain","ingestionStatus","lastProcessedSlot"],
+                                properties : {
+                                    walletId : {type : "string"},
+                                    address : {type : "string"},
+                                    chain : {type : "string", enum : ["solana"]},
+                                    ingestionStatus : {type : "string", enum : ["healthy", "lagging", "failed"]},
+                                    lastProcessedSlot : {type : "number"}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }, async(request, reply) => {
+
+        return {
+            wallets : []
+        }
     })
 
     // placeholder: add wallets
