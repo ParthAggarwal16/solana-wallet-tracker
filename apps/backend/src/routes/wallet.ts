@@ -103,7 +103,7 @@ export async function walletRoutes(server : FastifyInstance) {
                 type: "object",
                 required : ["walletId"],
                 properties: {
-                    walletId : {type: "string", minLenght : "1"}
+                    walletId : {type: "string", minLength : "1"}
                 }
             },
             response: {
