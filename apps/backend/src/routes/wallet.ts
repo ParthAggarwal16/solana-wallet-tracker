@@ -69,5 +69,39 @@ export async function walletRoutes(server : FastifyInstance) {
             walletId : "walletId_123", address, chain, ingestionStatus : "healthy"
         }
     })
+
+    server.delete("/wallet/:walletId", {
+        schema: {
+            params: {
+                type: "object",
+                required : ["walletId"],
+                properties: {
+                    walletId : {type: "string", minLenght : "1"}
+                }
+            },
+            response: {
+                200: {
+                    type : "object",
+                    required : ["walletId", "stopped"],
+                    properties : {
+                        walletId: {type : "string"},
+                        stopped : {type : "boolean"}
+                    } 
+                }
+            }
+        }
+    }, async(request, reply) => {
+        const { walletId } = request.params as {
+            walletId : string
+            
+        }
+            reply.code(200)
+            return {
+                walletId, 
+                stopped : true
+            }
+    })
 }
+
+
 
