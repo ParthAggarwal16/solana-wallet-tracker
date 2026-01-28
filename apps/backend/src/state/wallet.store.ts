@@ -3,6 +3,7 @@
 
 import { error } from "console"
 import { Wallet } from "../models"
+import { ulid } from "ulid"
 
 // addWallet(userId, address)
 // removeWallet(walletId)
@@ -27,7 +28,10 @@ export const addWallet = async(userId : string , address : string) => {
 
     //generate walletId
     // chain = solana
+    const uniqueId = ulid()
+    
     // createdAt = now
+    
     //store it in the wallet state
     // initialize ingestionState (
     // status : "healthy"
