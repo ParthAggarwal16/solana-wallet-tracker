@@ -1,16 +1,28 @@
 // a place that stores wallets (keyed by walletId)
 // a place that stores ingestionState (keyed by walletAddress)
 
+import { error } from "console"
+import { Wallet } from "../models"
+
 // addWallet(userId, address)
 // removeWallet(walletId)
 // listWallets(userId)
 // countWallets(userId)
 
 // this adds the wallets to the wallet list (max is 100 wallets)
+
+const walletStore = new Map <string, Wallet>()
 export const addWallet = async(userId : string , address : string) => {
     const count = await countWallets(userId)
-    if (count > 100) {
-        console.error("wallet count exceeds the max limit")
+    if (count >= 100) {
+        throw new Error("wallet limit exeeded (max100)")
+    }
+
+    // prevent duplicate wallet tracking
+    for (const wallet of walletStore.values()){
+        if (wallet.userId === userId && wallet.address === address){
+            throw new Error ("wallet already tracked")
+        }
     }
 
     //generate walletId
@@ -21,8 +33,6 @@ export const addWallet = async(userId : string , address : string) => {
     // status : "healthy"
     //lastProcessedSlot = 0
     // lastProcessedSignature = "null") 
-
-
 
 }
 
