@@ -2,6 +2,7 @@
 // a place that stores ingestionState (keyed by walletId)
 import type { Wallet } from "../models"
 import { startIngestion } from "../ingestion/ingestion"
+import { PublicKey } from "@solana/web3.js"
 
 // addWallet(userId, address)
 // removeWallet(walletId)
@@ -20,6 +21,12 @@ const ingestionStore = new Map <string, IngestionState>()
 const walletStore = new Map <string, Wallet>()
 
 export const addWallet = async(userId : string , address : string) => {
+    
+    //solana address check
+    if (!isValidSolanaAddress(address)){
+        throw new Error("invalid solana address")
+    }
+    
     const count = await countWallets(userId)
     if (count >= 100) {
         throw new Error("wallet limit exeeded (max100)")
@@ -30,14 +37,6 @@ export const addWallet = async(userId : string , address : string) => {
         if (wallet.userId === userId && wallet.address === address){
             throw new Error ("wallet already tracked")
         }
-
-    let count = 0 
-    for (const wallet of walletStore.values()) {
-        if (wallet.userId === userId){
-            count ++
-        }
-    }
-    return count 
     
     }
 
@@ -76,9 +75,6 @@ export const addWallet = async(userId : string , address : string) => {
         throw err
     }
 
-    if (!address || address.length >32) {
-        throw new Error ("invalid solana address")
-    }
 
     return {walletId: wallet.id,
         address : wallet.address,
@@ -113,11 +109,25 @@ export const listWallets = async(userId : string) => {
 
 // this counts the wallets to ensure the wallets dont scross 100
 export const countWallets = async(userId : string): Promise<number> => {
-
     // return number of wallets of that user 
     // no side effects
 
-
-    return 0
+        let count = 0 
+    for (const wallet of walletStore.values()) {
+        if (wallet.userId === userId){
+            count ++
+        }
+    }
+    return count 
 }
 
+function isValidSolanaAddress (address : string) {
+    try{
+        new PublicKey(address)
+        return true
+    }
+    catch {
+        return false
+    }
+
+}
