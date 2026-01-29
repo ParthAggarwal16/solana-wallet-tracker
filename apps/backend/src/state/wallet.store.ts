@@ -76,6 +76,10 @@ export const addWallet = async(userId : string , address : string) => {
         throw err
     }
 
+    if (!address || address.length >32) {
+        throw new Error ("invalid solana address")
+    }
+
     return {walletId: wallet.id,
         address : wallet.address,
         chain : wallet.chain,
