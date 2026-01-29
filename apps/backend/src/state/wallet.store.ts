@@ -30,8 +30,15 @@ export const addWallet = async(userId : string , address : string) => {
         if (wallet.userId === userId && wallet.address === address){
             throw new Error ("wallet already tracked")
         }
+
+    let count = 0 
+    for (const wallet of walletStore.values()) {
+        if (wallet.userId === userId){
+            count ++
+        }
+    }
+    return count 
     
-    return 0
     }
 
     //generate walletId
