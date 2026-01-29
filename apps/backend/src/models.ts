@@ -39,8 +39,8 @@ interface TransactionState {
 
 // defining ingestion models 
 
-type IngestionStatus = "healthy" | "lagging" | "failed"
-interface IngestionState {
+export type IngestionStatus = "healthy" | "lagging" | "failed" 
+export interface IngestionState {
     walletAddress : string 
     lastProcessedSlot : number
     lastProcessedSignature : string

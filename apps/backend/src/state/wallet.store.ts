@@ -1,9 +1,7 @@
 // a place that stores wallets (keyed by walletId)
-// a place that stores ingestionState (keyed by walletAddress)
-
-import { error } from "console"
-import { Wallet } from "../models"
-import { ulid } from "ulid"
+// a place that stores ingestionState (keyed by walletId)
+import type { Wallet } from "../models"
+import { startIngestion } from "../ingestion/ingestion"
 
 // addWallet(userId, address)
 // removeWallet(walletId)
@@ -12,7 +10,15 @@ import { ulid } from "ulid"
 
 // this adds the wallets to the wallet list (max is 100 wallets)
 
+type IngestionState = {
+    ingestionStatus : "healthy" | "lagging" | "failed" 
+    lastProcessedSignature : string | null
+    lastProcessedSlot : number
+}
+const ingestionStore = new Map <string, IngestionState>()
+
 const walletStore = new Map <string, Wallet>()
+
 export const addWallet = async(userId : string , address : string) => {
     const count = await countWallets(userId)
     if (count >= 100) {
@@ -24,19 +30,44 @@ export const addWallet = async(userId : string , address : string) => {
         if (wallet.userId === userId && wallet.address === address){
             throw new Error ("wallet already tracked")
         }
+    
+    return 0
     }
 
     //generate walletId
-    // chain = solana
-    const uniqueId = ulid()
+    const walletId = crypto.randomUUID()
     
+    // chain = solana
     // createdAt = now
+    const wallet: Wallet = {
+        id : walletId,
+        userId : userId,
+        address : address,
+        chain : "solana",
+        createdAt : new Date ()
+    }
     
     //store it in the wallet state
+    walletStore.set(walletId, wallet)
+
     // initialize ingestionState (
     // status : "healthy"
     //lastProcessedSlot = 0
     // lastProcessedSignature = "null") 
+
+    ingestionStore.set (walletId, {
+        ingestionStatus : "healthy",
+        lastProcessedSlot : 0,
+        lastProcessedSignature : null
+    })
+
+    await startIngestion(address)
+
+    return {walletId: wallet.id,
+        address : wallet.address,
+        chain : wallet.chain,
+        ingestionStatus : "healthy"
+    }
 
 }
 

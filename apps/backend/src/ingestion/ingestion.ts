@@ -9,7 +9,7 @@
 // lagging = WS missed data, RPC catching up
 // failed = RPC unavailable / repeated errors
 
-function startIngestion () {
+ export const startIngestion = async(address: string) => {
 
     // this function starts ingestions for wallet 
     // load ingestion state for wallet 
