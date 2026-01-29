@@ -68,7 +68,13 @@ export const addWallet = async(userId : string , address : string) => {
         lastProcessedSignature : null
     })
 
-    await startIngestion(address)
+    try {
+        await startIngestion(address)
+    } catch (err) {
+        walletStore.delete(walletId)
+        ingestionStore.delete(walletId)
+        throw err
+    }
 
     return {walletId: wallet.id,
         address : wallet.address,
