@@ -1,7 +1,7 @@
 // a place that stores wallets (keyed by walletId)
 // a place that stores ingestionState (keyed by walletId)
 import type { Wallet } from "../models"
-import { startIngestion } from "../ingestion/ingestion"
+import { startIngestion, stopIngestion } from "../ingestion/ingestion"
 import { PublicKey } from "@solana/web3.js"
 
 // addWallet(userId, address)
@@ -12,7 +12,7 @@ import { PublicKey } from "@solana/web3.js"
 // this adds the wallets to the wallet list (max is 100 wallets)
 
 type IngestionState = {
-    ingestionStatus : "healthy" | "lagging" | "failed" 
+    ingestionStatus : "healthy" | "lagging" | "failed" | "stopped"
     lastProcessedSignature : string | null
     lastProcessedSlot : number
 }
@@ -75,7 +75,6 @@ export const addWallet = async(userId : string , address : string) => {
         throw err
     }
 
-
     return {walletId: wallet.id,
         address : wallet.address,
         chain : wallet.chain,
@@ -86,13 +85,28 @@ export const addWallet = async(userId : string , address : string) => {
 
 // removes the wallet from the list
 export const removeWallet = async(walletId : string) => {
-
     //find wallet 
-    // if not found , throw error
-    // remove wallet from store
-    // mark ingestion state to stopped 
-    // return boolean or remove wallet
+    const walletToBeRemoved = walletStore.get(walletId)
 
+    // if not found , throw error
+    if (!walletToBeRemoved){
+        throw new Error ("wallet not found")
+    }
+
+    try {
+        await stopIngestion(walletToBeRemoved.address)
+    }catch(err){
+        throw err
+    }
+
+    // remove wallet from store
+    walletStore.delete(walletId)
+
+    // mark ingestion state to stopped 
+    ingestionStore.delete(walletId)
+
+    // return boolean or remove wallet
+    return true
 }
 
 // list the wallets (max is 100)

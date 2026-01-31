@@ -19,7 +19,7 @@
 
 }
 
-function stopIngestion () {
+export const stopIngestion = async(address : string) => {
     
     // this function stops the ingestion
     //unsubs the WS
