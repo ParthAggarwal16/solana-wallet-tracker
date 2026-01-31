@@ -132,6 +132,7 @@ export const listWallets = async(userId : string) => {
             address : wallet.address,
             ingestionStatus : ingestion.ingestionStatus,
             lastProcessedSlot : ingestion.lastProcessedSlot,
+            chain : wallet.chain
         })
         
     }
