@@ -113,7 +113,13 @@ export const removeWallet = async(walletId : string) => {
 // list the wallets (max is 100)
 export const listWallets = async(userId : string) => {
     // filters wallets used by userId
-    const userWallets = []
+    const userWallets: Array <{
+        walletId : string,
+        address : string,
+        chain : "solana",
+        ingestionStatus : "healthy" | "lagging" | "failed" | "stopped"
+        lastProcessedSlot : number
+    }> = []
     
     // for each wallet :
     for (const [walletId, wallet] of walletStore.entries()){
