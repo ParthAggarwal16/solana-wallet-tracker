@@ -87,7 +87,7 @@ export const addWallet = async(userId : string , address : string) => {
 export const removeWallet = async(walletId : string) => {
     //find wallet 
     const walletToBeRemoved = walletStore.get(walletId)
-    
+
     // if not found , throw error
     if (!walletToBeRemoved){
         throw new Error ("wallet not found")
@@ -112,14 +112,31 @@ export const removeWallet = async(walletId : string) => {
 
 // list the wallets (max is 100)
 export const listWallets = async(userId : string) => {
-    
     // filters wallets used by userId
+    const userWallets = []
+    
     // for each wallet :
-    // attach ingestion status
-    // attach lastProcessedSlot
+    for (const [walletId, wallet] of walletStore.entries()){
+        if (wallet.userId !== userId) 
+            continue
+        
+        // attach ingestion status
+        const ingestion = ingestionStore.get(walletId)
+        if (!ingestion) {
+            throw new Error (`ingetsion state missing for wallet ${walletId}`)
+        }
+       
+        // attach lastProcessedSlot
+        userWallets.push ({
+            walletId : wallet.id,
+            address : wallet.address,
+            ingestionStatus : ingestion.ingestionStatus,
+            lastProcessedSlot : ingestion.lastProcessedSlot,
+        })
+        
+    }
     // return array
-
-
+    return userWallets
 }
 
 // this counts the wallets to ensure the wallets dont scross 100
