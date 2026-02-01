@@ -84,7 +84,7 @@ export const addWallet = async(userId : string , address : string) => {
 }
 
 // removes the wallet from the list
-export const removeWallet = async(walletId : string) => {
+export const removeWallet = async(userId : string, walletId : string) => {
     //find wallet 
     const walletToBeRemoved = walletStore.get(walletId)
 
@@ -92,6 +92,11 @@ export const removeWallet = async(walletId : string) => {
     if (!walletToBeRemoved){
         throw new Error ("wallet not found")
     }
+
+    if (walletToBeRemoved.userId !== userId){
+        throw new Error ("wallet does not belong to the user")
+    }
+
     await stopIngestion(walletToBeRemoved.address)
     
     // mark ingestion state to stopped 
@@ -105,6 +110,9 @@ export const removeWallet = async(walletId : string) => {
         lastProcessedSlot: prev.lastProcessedSlot,
         lastProcessedSignature: prev.lastProcessedSignature
     })
+
+    walletStore.delete(walletId)
+    ingestionStore.delete(walletId)
 
     // return boolean or remove wallet
     return true

@@ -45,7 +45,7 @@ export async function walletRoutes(server : FastifyInstance) {
         //zod parsing
         const parsed = addWalletSchema.safeParse(request.body)
         if (!parsed.success){
-            reply.code(401)
+            reply.code(400)
             return {
                 error : "invalid request body",
                 issues : z.treeifyError(parsed.error)
@@ -100,12 +100,12 @@ export async function walletRoutes(server : FastifyInstance) {
         }
         const { walletId } = parsed.data
 
-        await removeWallet(walletId)
+        await removeWallet(userId, walletId)
         
         reply.code(200)
         
         return {
-            walletId, stopped : "true"
+            walletId, stopped : true
         }
     })
 }
