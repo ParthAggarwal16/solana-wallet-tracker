@@ -62,15 +62,23 @@ export async function walletRoutes(server : FastifyInstance) {
 
     // health/sanity routes for wallet domain 
     server.get ("/wallet/health", async() => {
+
+        //empty for now as ingestion health aggregation needs lag thresholds, failed walletcounts, ingestionStore scan
         return {status : "ok"}
         
     })
 
     // placeholders: list wallets 
     server.get ("/wallets", async(request, reply) => {
+
+        // temporary until i do auth
+        const userId = "user1"
+
+        const wallets = await listWallets(userId)
         
+        reply.code(200)
         return {
-            wallets : []
+            wallets
         }
     })
 
