@@ -48,7 +48,7 @@ export async function walletRoutes(server : FastifyInstance) {
             reply.code(401)
             return {
                 error : "invalid request body",
-                issues : parsed.error.flatten
+                issues : z.treeifyError(parsed.error)
             } 
         }
 
@@ -77,10 +77,28 @@ export async function walletRoutes(server : FastifyInstance) {
 
     server.delete("/wallet/:walletId", async(request, reply) => {
 
+        //again definfin temporary userId until i do auth
         const userId = "user1"
+
+        // note : walletId lives inside params (not body), pls dont forget this ffs
         const parsed = deleteWalletSchemaParams.safeParse(request.params)
 
-        return true
+        if (!parsed.success){
+            reply.code(400)
+            return {
+                issues : z.treeifyError(parsed.error),
+                error : "invalid walletId"
+            }
+        }
+        const { walletId } = parsed.data
+
+        await removeWallet(walletId)
+        
+        reply.code(200)
+        
+        return {
+            walletId, stopped : "true"
+        }
     })
 }
 
