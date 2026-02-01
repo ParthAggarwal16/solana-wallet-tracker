@@ -30,6 +30,30 @@ export async function walletRoutes(server : FastifyInstance) {
         address : z.string().min(1),
         chain : z.literal("solana").optional()
     })
+    
+    // placeholder: add wallets
+    server.post ("/wallets",  async(request, reply) => {
+        
+        //temporary userID until i implement auth
+        const userId = "user1"
+
+        //zod parsing
+        const parsed = addWalletSchema.safeParse(request.body)
+        if (!parsed.success){
+            reply.code(401)
+            return {
+                error : "invalid request body",
+                issues : parsed.error.flatten
+            } 
+        }
+
+        const {address, chain = "solana"} = parsed.data
+
+        const wallet = await addWallet(userId, address)
+
+        reply.code(201)
+        return {wallet}
+    })
 
     // health/sanity routes for wallet domain 
     server.get ("/wallet/health", async() => {
@@ -45,18 +69,6 @@ export async function walletRoutes(server : FastifyInstance) {
         }
     })
 
-    // placeholder: add wallets
-    server.post ("/wallets",  async(request, reply) => {
-        const {address, chain = "solana"} = request.body as {
-            address : string
-            chain? : "solana"
-        }
-        reply.code(201)
-
-        return {
-            walletId : "walletId_123", address, chain, ingestionStatus : "healthy"
-        }
-    })
 
     server.delete("/wallet/:walletId", {
         schema: {
