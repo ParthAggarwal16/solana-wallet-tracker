@@ -30,7 +30,12 @@ export async function walletRoutes(server : FastifyInstance) {
         address : z.string().min(1),
         chain : z.literal("solana").optional()
     })
-    
+
+    const walletIdSchema = z.uuid()
+    const deleteWalletSchemaParams = z.object({
+        walletId : walletIdSchema
+    })
+
     // placeholder: add wallets
     server.post ("/wallets",  async(request, reply) => {
         
@@ -70,36 +75,12 @@ export async function walletRoutes(server : FastifyInstance) {
     })
 
 
-    server.delete("/wallet/:walletId", {
-        schema: {
-            params: {
-                type: "object",
-                required : ["walletId"],
-                properties: {
-                    walletId : {type: "string", minLength : "1"}
-                }
-            },
-            response: {
-                200: {
-                    type : "object",
-                    required : ["walletId", "stopped"],
-                    properties : {
-                        walletId: {type : "string"},
-                        stopped : {type : "boolean"}
-                    } 
-                }
-            }
-        }
-    }, async(request, reply) => {
-        const { walletId } = request.params as {
-            walletId : string
-            
-        }
-            reply.code(200)
-            return {
-                walletId, 
-                stopped : true
-            }
+    server.delete("/wallet/:walletId", async(request, reply) => {
+
+        const userId = "user1"
+        const parsed = deleteWalletSchemaParams.safeParse(request.params)
+
+        return true
     })
 }
 
