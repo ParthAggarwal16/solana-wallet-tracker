@@ -9,6 +9,8 @@
 // lagging = WS missed data, RPC catching up
 // failed = RPC unavailable / repeated errors
 
+import { IngestionState, IngestionStatus } from "../models"
+
  export const startIngestion = async(address: string) => {
 
     // this function starts ingestions for wallet 
@@ -58,4 +60,9 @@ function handleRPCBackfill () {
     // update ingestion cursor 
     // decide when WS can be trusted again 
 
+}
+
+function deriveIngestionState (state : IngestionState) : IngestionStatus {
+
+    return "healthy"//dummy response for now just so TS doesnt show error
 }
