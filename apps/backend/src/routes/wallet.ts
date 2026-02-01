@@ -20,72 +20,33 @@
 // ingestion subsystem status (aggregate)
 
 import { FastifyInstance } from "fastify"
+import { z } from "zod"
+import { addWallet, removeWallet, listWallets } from "../state/wallet.store"
+
 
 export async function walletRoutes(server : FastifyInstance) {
+    
+    const addWalletSchema = z.object({
+        address : z.string().min(1),
+        chain : z.literal("solana").optional()
+    })
 
     // health/sanity routes for wallet domain 
     server.get ("/wallet/health", async() => {
         return {status : "ok"}
+        
     })
 
     // placeholders: list wallets 
-    server.get ("/wallets", {
-        schema : { 
-            response : {
-                200 : {
-                    type : "object",
-                    required : ["wallets"],
-                    properties : {
-                        wallets : {type : "array",
-                            items : {
-                                type : "object",
-                                required : ["walletId", "address","chain","ingestionStatus","lastProcessedSlot"],
-                                properties : {
-                                    walletId : {type : "string"},
-                                    address : {type : "string"},
-                                    chain : {type : "string", enum : ["solana"]},
-                                    ingestionStatus : {type : "string", enum : ["healthy", "lagging", "failed"]},
-                                    lastProcessedSlot : {type : "number"}
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }, async(request, reply) => {
-
+    server.get ("/wallets", async(request, reply) => {
+        
         return {
             wallets : []
         }
     })
 
     // placeholder: add wallets
-    server.post ("/wallets", {
-        schema: {
-            body: {
-                type: "object",
-                required : ["address"], 
-                properties: {
-                    address: {type : "string", minLength : "1" },
-                    chain : {type : "string", enum: ["solana"], default : "solana"}
-                }
-            },
-            response: {
-                201: {
-                    type : "object",
-                    required : ["walletId", "address", "chain", "ingestionStatus"],
-                    properties : {
-                        walletId : {type : "string"},
-                        address : {type : "string"},
-                        chain : {type : "string", enum : ["solana"]},
-                        ingestionStatus : {type : "string", enum : ["healthy", "lagging", "failed"]}
-                    }
-                }
-            }
-
-        }
-    },  async(request, reply) => {
+    server.post ("/wallets",  async(request, reply) => {
         const {address, chain = "solana"} = request.body as {
             address : string
             chain? : "solana"

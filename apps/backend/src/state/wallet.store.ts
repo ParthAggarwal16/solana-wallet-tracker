@@ -129,7 +129,7 @@ export const listWallets = async(userId : string) => {
         // attach ingestion status
         const ingestion = ingestionStore.get(walletId)
         if (!ingestion) {
-            throw new Error (`ingetsion state missing for wallet ${walletId}`)
+            throw new Error (`ingestion state missing for wallet ${walletId}`)
         }
        
         // attach lastProcessedSlot
