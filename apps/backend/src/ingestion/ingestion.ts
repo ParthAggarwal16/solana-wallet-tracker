@@ -62,6 +62,14 @@ function handleRPCBackfill () {
 
 }
 
+// healthy -- heartbeat within n seconds
+// lagging- no heartbeat but RPC is still processing
+// failed- reported RPC failures or no progress for a long time
+// stopped- explicitly stopped
+
+const HEARTBEAT_THRESHOLD_MS = 15_000
+const MAX_ERROR_COUNT = 3
+
 function deriveIngestionState (state : IngestionState) : IngestionStatus {
 
     return "healthy"//dummy response for now just so TS doesnt show error

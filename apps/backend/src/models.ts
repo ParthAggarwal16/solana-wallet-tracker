@@ -46,7 +46,7 @@ export interface IngestionState {
     lastProcessedSignature : string
     status : IngestionStatus
     updatedAt : Date
-    lastHeartbeatAt : Date      //this gets updates whenevr WS message is recieved 
-                                //or a transaction is successfully processed
+    lastHeartbeatAt : number | null      //this gets updates whenevr WS message is recieved or a transaction is successfully processed
+    errorCount : number
 }
 
