@@ -75,7 +75,15 @@ export function deriveIngestionState (state : IngestionState) : IngestionStatus 
         return "stopped"
     }
 
-    const now = new Date()
+    const now = Date.now()
 
-    return "healthy"//dummy response for now just so TS doesnt show error
+    if (state.lastHeartbeatAt && now - state.lastHeartbeatAt < HEARTBEAT_THRESHOLD_MS){
+        return "healthy"
+    }
+
+    if (state.errorCount >= MAX_ERROR_COUNT){
+        return "failed"
+    }
+
+    return "lagging"
 }
