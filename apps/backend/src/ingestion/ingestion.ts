@@ -70,7 +70,12 @@ function handleRPCBackfill () {
 const HEARTBEAT_THRESHOLD_MS = 15_000
 const MAX_ERROR_COUNT = 3
 
-function deriveIngestionState (state : IngestionState) : IngestionStatus {
+export function deriveIngestionState (state : IngestionState) : IngestionStatus {
+    if (state.status === "stopped"){
+        return "stopped"
+    }
+
+    const now = new Date()
 
     return "healthy"//dummy response for now just so TS doesnt show error
 }

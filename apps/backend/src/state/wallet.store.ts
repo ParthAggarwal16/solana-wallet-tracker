@@ -1,6 +1,6 @@
 // a place that stores wallets (keyed by walletId)
 // a place that stores ingestionState (keyed by walletId)
-import type { Wallet } from "../models"
+import type { Wallet, IngestionState } from "../models"
 import { startIngestion, stopIngestion } from "../ingestion/ingestion"
 import { PublicKey } from "@solana/web3.js"
 
@@ -11,11 +11,6 @@ import { PublicKey } from "@solana/web3.js"
 
 // this adds the wallets to the wallet list (max is 100 wallets)
 
-type IngestionState = {
-    ingestionStatus : "healthy" | "lagging" | "failed" | "stopped"
-    lastProcessedSignature : string | null
-    lastProcessedSlot : number
-}
 const ingestionStore = new Map <string, IngestionState>()
 
 const walletStore = new Map <string, Wallet>()
@@ -62,9 +57,13 @@ export const addWallet = async(userId : string , address : string) => {
     // lastProcessedSignature = "null") 
 
     ingestionStore.set (walletId, {
-        ingestionStatus : "healthy",
+        walletAddress : wallet.address,
         lastProcessedSlot : 0,
-        lastProcessedSignature : null
+        lastProcessedSignature : "",
+        status : "healthy",
+        lastHeartbeatAt : null,
+        errorCount : 0,
+        updatedAt : new Date()
     })
 
     try {
@@ -106,9 +105,9 @@ export const removeWallet = async(userId : string, walletId : string) => {
     }
 
     ingestionStore.set(walletId, {
-        ingestionStatus: "stopped",
-        lastProcessedSlot: prev.lastProcessedSlot,
-        lastProcessedSignature: prev.lastProcessedSignature
+        ...prev,
+        status : "stopped",
+        updatedAt : new Date()
     })
 
     walletStore.delete(walletId)
@@ -144,7 +143,7 @@ export const listWallets = async(userId : string) => {
         userWallets.push ({
             walletId : wallet.id,
             address : wallet.address,
-            ingestionStatus : ingestion.ingestionStatus,
+            ingestionStatus : ingestion.status,
             lastProcessedSlot : ingestion.lastProcessedSlot,
             chain : wallet.chain
         })
