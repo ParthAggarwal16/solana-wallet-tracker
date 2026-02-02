@@ -39,12 +39,19 @@ interface TransactionState {
 
 // defining ingestion models 
 
-export type IngestionStatus = "healthy" | "lagging" | "failed" | "stopped"
+export type IngestionStatus = "starting" | "healthy" | "lagging" | "failed" | "stopped" 
 export interface IngestionState {
-    walletAddress : string 
+    walletAddress : string
+    walletId : string
+    
+    status : IngestionStatus
+
     lastProcessedSlot : number
     lastProcessedSignature : string
-    status : IngestionStatus
+
+    wsConnected : boolean
+    rpcBackFillInProgress : boolean
+    
     updatedAt : Date
     lastHeartbeatAt : number | null      //this gets updates whenevr WS message is recieved or a transaction is successfully processed
     errorCount : number

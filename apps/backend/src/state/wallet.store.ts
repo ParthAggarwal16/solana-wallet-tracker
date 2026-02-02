@@ -1,7 +1,7 @@
 // a place that stores wallets (keyed by walletId)
 // a place that stores ingestionState (keyed by walletId)
-import type { Wallet, IngestionState } from "../models"
-import { startIngestion, stopIngestion } from "../ingestion/ingestion"
+import type { Wallet, IngestionState, IngestionStatus } from "../models"
+import { deriveIngestionState, startIngestion, stopIngestion } from "../ingestion/ingestion"
 import { PublicKey } from "@solana/web3.js"
 
 // addWallet(userId, address)
@@ -56,16 +56,6 @@ export const addWallet = async(userId : string , address : string) => {
     //lastProcessedSlot = 0
     // lastProcessedSignature = "null") 
 
-    ingestionStore.set (walletId, {
-        walletAddress : wallet.address,
-        lastProcessedSlot : 0,
-        lastProcessedSignature : "",
-        status : "healthy",
-        lastHeartbeatAt : null,
-        errorCount : 0,
-        updatedAt : new Date()
-    })
-
     try {
         await startIngestion(address)
     } catch (err) {
@@ -99,15 +89,17 @@ export const removeWallet = async(userId : string, walletId : string) => {
     await stopIngestion(walletToBeRemoved.address)
     
     // mark ingestion state to stopped 
-    const prev = ingestionStore.get(walletId)
-    if (!prev) {
+    const ingestion = ingestionStore.get(walletId)
+    if (!ingestion) {
         throw new Error("ingestion state not found")
     }
 
     ingestionStore.set(walletId, {
-        ...prev,
+        ...ingestion,
         status : "stopped",
-        updatedAt : new Date()
+        updatedAt : new Date(),
+        wsConnected : false,
+        rpcBackFillInProgress : false
     })
 
     walletStore.delete(walletId)
@@ -124,7 +116,7 @@ export const listWallets = async(userId : string) => {
         walletId : string,
         address : string,
         chain : "solana",
-        ingestionStatus : "healthy" | "lagging" | "failed" | "stopped"
+        ingestionStatus : "healthy" | "lagging" | "failed" | "stopped" | "starting"
         lastProcessedSlot : number
     }> = []
     
@@ -138,14 +130,20 @@ export const listWallets = async(userId : string) => {
         if (!ingestion) {
             throw new Error (`ingestion state missing for wallet ${walletId}`)
         }
-       
+        
+        const derivedStatus = deriveIngestionState({
+            status: ingestion.status,
+            lastProcessedSlot: ingestion.lastProcessedSlot,
+            lastHeartbeatAt: null, // until WS exists
+            errorCount: 0          // until errors are tracked
+        })
         // attach lastProcessedSlot
         userWallets.push ({
             walletId : wallet.id,
             address : wallet.address,
-            ingestionStatus : ingestion.status,
             lastProcessedSlot : ingestion.lastProcessedSlot,
-            chain : wallet.chain
+            chain : wallet.chain,
+            ingestionStatus : derivedStatus
         })
         
     }

@@ -70,20 +70,25 @@ function handleRPCBackfill () {
 const HEARTBEAT_THRESHOLD_MS = 15_000
 const MAX_ERROR_COUNT = 3
 
-export function deriveIngestionState (state : IngestionState) : IngestionStatus {
-    if (state.status === "stopped"){
-        return "stopped"
-    }
+export function deriveIngestionState(
+  input: IngestionDerivationInput
+): IngestionStatus {
+  if (input.status === "stopped") 
+    return "stopped"
 
-    const now = Date.now()
+  if (input.errorCount > 3) 
+    return "failed"
 
-    if (state.lastHeartbeatAt && now - state.lastHeartbeatAt < HEARTBEAT_THRESHOLD_MS){
-        return "healthy"
-    }
-
-    if (state.errorCount >= MAX_ERROR_COUNT){
-        return "failed"
-    }
-
+  if (input.lastHeartbeatAt !== null && Date.now() - input.lastHeartbeatAt > 30_000) {
     return "lagging"
+  }
+
+  return "healthy"
+}
+
+export type IngestionDerivationInput = {
+  status: IngestionStatus
+  lastProcessedSlot: number
+  lastHeartbeatAt: number | null
+  errorCount: number
 }
