@@ -48,6 +48,23 @@ export function markWsconnected(state: IngestionState): IngestionState {
   }
 }
 
+export function markHeartbeat (state: IngestionState): IngestionState{
+  return {
+    ...state,
+    lastHeartbeatAt: Date.now(),
+    updatedAt: new Date()
+  }
+}
+
+export function markLagging (state: IngestionState): IngestionState {
+  return {
+    ...state,
+    status: "lagging",
+    rpcBackFillInProgress: true,
+    updatedAt: new Date()
+  }
+}
+
 export const startIngestion = async(address: string) => {
   
   // this function starts ingestions for wallet 
