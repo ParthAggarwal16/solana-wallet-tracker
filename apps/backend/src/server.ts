@@ -3,7 +3,7 @@
 import fastify from "fastify"
 import { walletRoutes } from "./routes/wallet"
 
-const server = fastify()
+export const server = fastify()
 
 
 server.listen ({port : 8080}, (err, address) => {

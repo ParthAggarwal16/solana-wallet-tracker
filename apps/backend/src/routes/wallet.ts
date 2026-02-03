@@ -22,8 +22,6 @@
 import { FastifyInstance } from "fastify"
 import { z } from "zod"
 import { addWallet, removeWallet, listWallets } from "../state/wallet.store"
-import { error } from "console"
-import { Message } from "@solana/web3.js"
 
 
 export async function walletRoutes(server : FastifyInstance) {
@@ -105,11 +103,11 @@ export async function walletRoutes(server : FastifyInstance) {
        try {
         await removeWallet(userId, walletId)
        } catch(err : any) {
-        if (err.Message.includes("not belong")){
+        if (err.message.includes("not belong")){
             reply.code(403)
             return {error : "forbidden"}
         }
-        if (err.Message.includes("not found")){
+        if (err.message.includes("not found")){
             reply.code(404)
             return {error : "wallet not found"}
         }

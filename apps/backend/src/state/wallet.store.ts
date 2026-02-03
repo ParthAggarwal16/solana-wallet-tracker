@@ -13,7 +13,7 @@ import { PublicKey } from "@solana/web3.js"
 
 const ingestionStore = new Map <string, IngestionState>()
 
-const walletStore = new Map <string, Wallet>()
+export const walletStore = new Map <string, Wallet>()
 
 export const addWallet = async(userId : string , address : string) => {
     

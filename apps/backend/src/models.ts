@@ -5,7 +5,7 @@
 // ingestion : walletaddress, lastproccessedSlot, lastprocessedSignature, updatedAt
 
 //defining the user models
-interface User {
+export interface User {
     id : string
     email : string
     createdAt : Date
