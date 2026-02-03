@@ -1,7 +1,7 @@
 // a place that stores wallets (keyed by walletId)
 // a place that stores ingestionState (keyed by walletId)
 import type { Wallet, IngestionState, IngestionStatus } from "../models"
-import { deriveIngestionState, startIngestion, stopIngestion } from "../ingestion/ingestion"
+import { deriveIngestionState, startIngestion, stopIngestion, createInitialIngestionState, markStopped } from "../ingestion/ingestion"
 import { PublicKey } from "@solana/web3.js"
 
 // addWallet(userId, address)
@@ -47,6 +47,10 @@ export const addWallet = async(userId : string , address : string) => {
         chain : "solana",
         createdAt : new Date ()
     }
+
+    //calling the initial ingestion state in addwallets
+    const ingestionState = createInitialIngestionState(walletId, address)
+    ingestionStore.set(walletId, ingestionState)
     
     //store it in the wallet state
     walletStore.set(walletId, wallet)
@@ -94,13 +98,7 @@ export const removeWallet = async(userId : string, walletId : string) => {
         throw new Error("ingestion state not found")
     }
 
-    ingestionStore.set(walletId, {
-        ...ingestion,
-        status : "stopped",
-        updatedAt : new Date(),
-        wsConnected : false,
-        rpcBackFillInProgress : false
-    })
+    ingestionStore.set(walletId, markStopped(ingestion))
 
     walletStore.delete(walletId)
     ingestionStore.delete(walletId)
