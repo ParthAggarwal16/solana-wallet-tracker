@@ -54,10 +54,26 @@ export async function walletRoutes(server : FastifyInstance) {
 
         const {address, chain = "solana"} = parsed.data
 
-        const wallet = await addWallet(userId, address)
-
-        reply.code(201)
-        return {wallet}
+        try {
+            const wallet = await addWallet(userId, address)
+            reply.code(201)
+            return { wallet }
+        }catch(err: any){
+            const msg = err.message ?? ""
+            if (msg.includes("wallet limit")){
+                reply.code(400)
+                return {error : "the wallet limit has been exceeded (max 100)"}
+            }
+            if (msg.includes("already tracked")){
+                reply.code(409)
+                return {error : "wallet already tracked"}
+            }
+            if (msg.includes("invalid solana address")){
+                reply.code(400)
+                return {error : "invalid solana address"}
+            }
+            throw err
+        }
     })
 
     // health/sanity routes for wallet domain 
