@@ -47,7 +47,7 @@ export interface IngestionState {
     status : IngestionStatus
 
     lastProcessedSlot : number
-    lastProcessedSignature : string
+    lastProcessedSignature : string | null
 
     wsConnected : boolean
     rpcBackFillInProgress : boolean
