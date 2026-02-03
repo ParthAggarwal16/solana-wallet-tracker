@@ -65,6 +65,26 @@ export function markLagging (state: IngestionState): IngestionState {
   }
 }
 
+export function markCaughtUp (state: IngestionState): IngestionState {
+  return {
+    ...state,
+    status: "healthy",
+    rpcBackFillInProgress: false,
+    updatedAt: new Date()
+  }
+}
+
+export function markError (state: IngestionState): IngestionState {
+  const errorCount = state.errorCount + 1
+  return {
+    ...state,
+    errorCount,
+    status : errorCount > MAX_ERROR_COUNT ? "failed" : state.status,
+    updatedAt: new Date()
+  }
+
+}
+
 export const startIngestion = async(address: string) => {
   
   // this function starts ingestions for wallet 
