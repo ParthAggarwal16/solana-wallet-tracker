@@ -15,6 +15,18 @@ const ingestionStore = new Map <string, IngestionState>()
 
 export const walletStore = new Map <string, Wallet>()
 
+export function getIngestionState(walletId: string): IngestionState {
+    const state = ingestionStore.get(walletId)
+    if (!state){
+        throw new Error (`ingestion state is missing for wallet ${walletId}`)
+    }
+    return state
+}
+
+export function setIngestionState (walletId : string, nextState: IngestionState) {
+    ingestionStore.set(walletId, nextState)
+}
+
 export const addWallet = async(userId : string , address : string) => {
     
     //solana address check
@@ -93,12 +105,12 @@ export const removeWallet = async(userId : string, walletId : string) => {
     await stopIngestion(walletToBeRemoved.address)
     
     // mark ingestion state to stopped 
-    const ingestion = ingestionStore.get(walletId)
+    const ingestion = getIngestionState(walletId)
     if (!ingestion) {
         throw new Error("ingestion state not found")
     }
 
-    ingestionStore.set(walletId, markStopped(ingestion))
+    setIngestionState(walletId, markStopped(ingestion))
 
     walletStore.delete(walletId)
     ingestionStore.delete(walletId)
@@ -124,7 +136,7 @@ export const listWallets = async(userId : string) => {
             continue
         
         // attach ingestion status
-        const ingestion = ingestionStore.get(walletId)
+        const ingestion = getIngestionState(walletId)
         if (!ingestion) {
             throw new Error (`ingestion state missing for wallet ${walletId}`)
         }
@@ -132,8 +144,8 @@ export const listWallets = async(userId : string) => {
         const derivedStatus = deriveIngestionState({
             status: ingestion.status,
             lastProcessedSlot: ingestion.lastProcessedSlot,
-            lastHeartbeatAt: null, // until WS exists
-            errorCount: 0          // until errors are tracked
+            lastHeartbeatAt: ingestion.lastHeartbeatAt,
+            errorCount: ingestion.errorCount
         })
         // attach lastProcessedSlot
         userWallets.push ({
