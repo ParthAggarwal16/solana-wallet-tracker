@@ -138,12 +138,35 @@ export const startIngestion = async(address: string) => {
 
 export const stopIngestion = async(address : string) => {
   
-  // this function stops the ingestion
-  //unsubs the WS
-  // flush any buffered transactions
-  // persist any ingestion 
-  // mark ingestion as stopped
-  
+  //defining interval 
+  const interval = heartBeatRegistry.get(address)
+
+//if interval exists then clear interval and delete address from heart beat register
+  if (interval){
+    clearInterval(interval)
+    heartBeatRegistry.delete(address)
+  }
+
+  let targetWalletId :string | null = null
+
+  for (const [walletId, state] of ingestionStore.entries()){
+    if (state.walletAddress === address){
+      targetWalletId = walletId
+      break
+    }
+  }
+
+  // if target wallet id doesnt exists then return nothing
+  if (!targetWalletId){
+    return
+  }
+
+  const current = getIngestionState(targetWalletId)
+
+  setIngestionState(
+    targetWalletId,
+    markStopped(current)
+  )
 }
 
 export function deriveIngestionState(
