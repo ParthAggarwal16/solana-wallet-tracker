@@ -2,9 +2,29 @@
 // status transitions
 // heartbeat updates
 
-import { deriveIngestionState } from "./ingestion"
+import { deriveIngestionState, stopIngestion } from "./ingestion"
 import { getIngestionState, setIngestionState, walletStore } from "../state/wallet.store"
-import { markLagging, markCaughtUp, markError } from "./ingestion"
+import { markLagging, markCaughtUp, markError, markHeartbeat } from "./ingestion"
+
+const HEARTBEAT_INTERVAL_MS = 5_000
+
+const heartbeatTimers = new Map<string, NodeJS.Timeout>()
+
+export function startHeartbeat (walletId : string){
+
+    if (heartbeatTimers.has(walletId)) {return}    
+
+    const timer = setInterval(() => {
+        const state = getIngestionState(walletId)
+
+        if (state.status === "stopped" || state.status === "failed"){
+            stopIngestion(walletId)
+            return
+        }
+        setIngestionState(walletId, markHeartbeat(state))
+    }, HEARTBEAT_INTERVAL_MS )
+    heartbeatTimers.set(walletId, timer)
+}
 
 export function startIngestionHealthSweeper(intervalMS = 5_000){
 
