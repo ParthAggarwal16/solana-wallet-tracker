@@ -62,3 +62,12 @@ export function startIngestionHealthSweeper(intervalMS = 5_000){
         
     }, intervalMS)
 }
+
+export function stopHeartbeat (walletId : string) {
+    const timer = heartbeatTimers.get(walletId)
+    if (!timer) {return}
+
+    clearInterval(timer)
+    heartbeatTimers.delete(walletId)
+    
+}
