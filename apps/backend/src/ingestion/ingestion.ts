@@ -10,9 +10,12 @@
 // failed = RPC unavailable / repeated errors
 
 import { IngestionState, IngestionStatus } from "../models"
+import { getIngestionState, setIngestionState, ingestionStore } from "../state/wallet.store"
 
 const HEARTBEAT_THRESHOLD_MS = 15_000
 const MAX_ERROR_COUNT = 3
+
+const heartBeatRegistry = new Map<string, NodeJS.Timeout>()
 
 // function to create an initial ingestion state
 export function createInitialIngestionState (walletId : string, walletAddress: string): IngestionState {

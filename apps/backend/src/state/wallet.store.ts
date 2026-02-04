@@ -11,7 +11,7 @@ import { PublicKey } from "@solana/web3.js"
 
 // this adds the wallets to the wallet list (max is 100 wallets)
 
-const ingestionStore = new Map <string, IngestionState>()
+export const ingestionStore = new Map <string, IngestionState>()
 
 export const walletStore = new Map <string, Wallet>()
 
