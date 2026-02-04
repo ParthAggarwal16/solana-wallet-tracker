@@ -97,13 +97,43 @@ export function markStopped (state: IngestionState): IngestionState {
 }
 
 export const startIngestion = async(address: string) => {
-  
-  // this function starts ingestions for wallet 
-  // load ingestion state for wallet 
-  // decide fresh start or resume
-  // start WS subscription and RPC cursor (if needed)
-  // set initial status (healthy / lagging)
-  
+
+  //find ingestion state by address
+  let targetWalletId : string | null = null
+
+  for (const [walletId, state] of ingestionStore.entries()){
+    if (state.walletAddress === address){
+      targetWalletId = walletId
+      break
+    }
+  }
+
+  //by doing this , we are also forcing targetwalletId to have some value without giving it one explicitly
+  if (!targetWalletId){
+    throw new Error (`no ingestion state for the address ${address}`)
+  }
+
+  const current = getIngestionState(targetWalletId)
+
+  //mark ingestionState as healthy and ws connected
+  setIngestionState(targetWalletId, markWsConnected(current))
+
+  //prevent double start
+  if (heartBeatRegistry.has(address)){
+    return
+  }
+
+  //defining interval between ingestion states
+  const interval = setInterval(() => {
+    const state = getIngestionState(targetWalletId)
+    if (state.status === "stopped")
+      return
+
+    setIngestionState(targetWalletId, 
+      markHeartbeat(state))
+  }, 5_000);
+
+  heartBeatRegistry.set(address, interval)
 }
 
 export const stopIngestion = async(address : string) => {
