@@ -2,7 +2,7 @@
 // status transitions
 // heartbeat updates
 
-import { deriveIngestionState, stopIngestion } from "./ingestion"
+import { deriveIngestionState, markStopped, stopIngestion } from "./ingestion"
 import { getIngestionState, setIngestionState, walletStore } from "../state/wallet.store"
 import { markLagging, markCaughtUp, markError, markHeartbeat } from "./ingestion"
 
@@ -77,7 +77,32 @@ const RECONCLIE_INTERVAL_MS = 10_000
 let reconcileTimer : NodeJS.Timeout | null = null
 
 export function reconcileWallet (walletId : string){
-    
+    const state = getIngestionState(walletId)
+
+    const derived = deriveIngestionState({
+        status : state.status,
+        lastHeartbeatAt : state.lastHeartbeatAt,
+        lastProcessedSlot : state.lastProcessedSlot,
+        errorCount : state.errorCount
+    })
+
+    //if failed then hard stoppped
+    if (derived === "failed" && state.status !== "failed"){
+        setIngestionState(walletId, markStopped(state))
+        stopIngestion(state.walletAddress)
+    }
+
+    // if lagging then ensure RPC backfill 
+    if (derived === "lagging" && state.status !== "lagging"){
+        setIngestionState(walletId, markLagging(state))
+            //RPC bacfill will be triggered by work logic later
+        return 
+    }
+
+    // if healthy then WS only, no backfill
+    if (derived === "healthy" && state.status !== "lagging"){
+        setIngestionState(walletId, markCaughtUp(state))
+    }
 }
 
 export function startReconciler(){
