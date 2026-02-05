@@ -108,4 +108,10 @@ export function reconcileWallet (walletId : string){
 export function startReconciler(){
     if (reconcileTimer){return}
 
+    reconcileTimer = setInterval(() => {
+        for (const walletId of walletStore.keys()){
+            reconcileWallet(walletId)
+        }
+    }, RECONCLIE_INTERVAL_MS);
+
 }
