@@ -71,3 +71,16 @@ export function stopHeartbeat (walletId : string) {
     heartbeatTimers.delete(walletId)
     
 }
+
+const RECONCLIE_INTERVAL_MS = 10_000
+
+let reconcileTimer : NodeJS.Timeout | null = null
+
+export function reconcileWallet (walletId : string){
+    
+}
+
+export function startReconciler(){
+    if (reconcileTimer){return}
+
+}
