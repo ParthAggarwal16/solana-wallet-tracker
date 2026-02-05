@@ -115,3 +115,29 @@ export function startReconciler(){
     }, RECONCLIE_INTERVAL_MS);
 
 }
+
+// this function triggers RPC backfill
+export async function triggerRPCBackfill(walletId : string){
+    const state = getIngestionState(walletId)
+
+    // gaurd alredy backfilling
+    if (state.rpcBackFillInProgress){return}
+
+    setIngestionState(walletId, {
+        ...state,
+        rpcBackFillInProgress : true,
+        updatedAt : new Date()
+    })
+
+    try {
+        await runRPCBackfill
+    }catch(err){
+        const errored = markError(getIngestionState(walletId))
+        setIngestionState(walletId, errored)
+    }
+}
+
+//this function runs RPC backfill
+export async function runRPCBackfill (walletId : string){
+
+}
