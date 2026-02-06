@@ -101,7 +101,7 @@ export function reconcileWallet (walletId : string){
     }
 
     // if healthy then WS only, no backfill
-    if (derived === "healthy" && state.status !== "lagging"){
+    if (derived === "healthy" && state.status === "lagging"){
         setIngestionState(walletId, markCaughtUp(state))
     }
 }
@@ -182,47 +182,110 @@ type WSTransaction = {
     signature : string
 }
 
-export function handleWSTransaction (walletId: string, tx : WSTransaction) {
+// Get wallet unordered buffer
+const wsBuffer: Map<string, WSTransaction[]> = new Map()
+// Per wallet dedupe set (fixed type)
+const wsSeen: Map<string, Set<string>> = new Map()
 
-    const state = getIngestionState(walletId)
+// Constants for buffer management
+const MAX_BUFFER_SIZE = 1000
+const MAX_SEEN_SIZE = 5000
 
-    //gaurds
-    if (state.status === "failed" || state.status === "stopped")
-        {return} 
+export function handleWSTransaction(
+  walletId: string,
+  tx: WSTransaction
+) {
+  const state = getIngestionState(walletId)
+  if (state.status === "stopped" || state.status === "failed") {
+    return
+  }
+  
+  // Heartbeat on any WS activity
+  setIngestionState(walletId, markHeartbeat(state))
+  
+  // Ignore old data
+  if (tx.slot <= state.lastProcessedSlot) {
+    return
+  }
+  
+  bufferTransaction(walletId, tx)
+  flushBuffer(walletId)
+}
 
-    // upadate hearbeat after a WS activity
-    setIngestionState(walletId, markHeartbeat(state))
+export function bufferTransaction(walletId: string, tx: WSTransaction): void {
+  let buffer = wsBuffer.get(walletId)
+  if (!buffer) {
+    buffer = []
+    wsBuffer.set(walletId, buffer)
+  }
+  
+  let seen = wsSeen.get(walletId)
+  if (!seen) {
+    seen = new Set<string>()
+    wsSeen.set(walletId, seen)
+  }
+  
+  const key = `${tx.slot}:${tx.signature}`
+  if (seen.has(key)) return
+  
+  seen.add(key)
+  buffer.push(tx)
+  
+  // Prevent unbounded growth
+  if (buffer.length > MAX_BUFFER_SIZE) {
+    buffer.shift() // Remove oldest
+  }
+  
+  // Clean up seen set if it gets too large
+  if (seen.size > MAX_SEEN_SIZE) {
+    const sortedBuffer = [...buffer].sort((a, b) => a.slot - b.slot)
+    const minSlot = sortedBuffer[0]?.slot ?? tx.slot
+    
+    // Remove entries for slots we've moved past
+    for (const seenKey of seen) {
+      const slotStr = seenKey.split(':')[0]
+      if (slotStr) {  // Check if defined
+        const slot = parseInt(slotStr, 10)
+        if (!isNaN(slot) && slot < minSlot - 100) { // Keep some history
+          seen.delete(seenKey)
+        }
+      }
+    }
+  }
+}
 
-    const lastSlot = state.lastProcessedSlot
-
-    //first tx ever:
-    if (lastSlot === null){setIngestionState(walletId, {
+export function flushBuffer(walletId: string): void {
+  const buffer = wsBuffer.get(walletId)
+  if (!buffer || buffer.length === 0) return
+  
+  buffer.sort((a, b) => a.slot - b.slot)
+  
+  let state = getIngestionState(walletId)
+  let cursor = state.lastProcessedSlot
+  let consumed = 0
+  
+  for (const tx of buffer) {
+    if (tx.slot === cursor + 1) {
+      cursor = tx.slot
+      state = {
         ...state,
         lastProcessedSlot: tx.slot,
         lastProcessedSignature: tx.signature,
         updatedAt: new Date()
-        })
-        return 
+      }
+      setIngestionState(walletId, state)
+      consumed++
+    } else {
+      break
     }
-
-    //normal forward progression
-    if (tx.slot = lastSlot + 1){
-        setIngestionState(walletId, {
-            ...state,
-            lastProcessedSlot: tx.slot,
-            lastProcessedSignature: tx.signature,
-            updatedAt: new Date()
-        })
-        return
-    }
-
-    //duplicate or old tx = ingnore
-    if (tx.slot <= lastSlot){
-        return
-    }
-
-    //GAP detected 
-    //ws skipped slots then trigger RPCbackfill
+  }
+  
+  buffer.splice(0, consumed)
+  
+  // Check if there's a gap after consuming transactions
+  const nextTx = buffer[0]
+  if (nextTx && nextTx.slot > cursor + 1) {
     setIngestionState(walletId, markLagging(state))
     triggerRPCBackfill(walletId)
+  }
 }
