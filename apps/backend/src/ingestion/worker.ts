@@ -97,6 +97,7 @@ export function reconcileWallet (walletId : string){
     if (derived === "lagging" && state.status !== "lagging"){
         setIngestionState(walletId, markLagging(state))
             //RPC bacfill will be triggered by work logic later
+            triggerRPCBackfill(walletId)
         return 
     }
 
