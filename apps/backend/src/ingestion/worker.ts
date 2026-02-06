@@ -19,6 +19,8 @@ export function startHeartbeat (walletId : string){
 
         if (state.status === "stopped" || state.status === "failed"){
             stopIngestion(walletId)
+            stopHeartbeat(walletId) 
+            clearWSState(walletId)  
             return
         }
         setIngestionState(walletId, markHeartbeat(state))
@@ -49,7 +51,7 @@ export function startIngestionHealthSweeper(intervalMS = 5_000){
                 setIngestionState(wallet.id, markLagging(state))
             }
 
-             if (derived === "healthy" && state.status === "lagging"){
+            if (derived === "healthy" && state.status === "lagging"){
                 setIngestionState(wallet.id, markCaughtUp(state))
             }
 
@@ -58,8 +60,6 @@ export function startIngestionHealthSweeper(intervalMS = 5_000){
             }
 
         }
-
-        
     }, intervalMS)
 }
 
@@ -69,7 +69,6 @@ export function stopHeartbeat (walletId : string) {
 
     clearInterval(timer)
     heartbeatTimers.delete(walletId)
-    
 }
 
 const RECONCLIE_INTERVAL_MS = 10_000
@@ -86,17 +85,19 @@ export function reconcileWallet (walletId : string){
         errorCount : state.errorCount
     })
 
-    //if failed then hard stoppped
-    if (derived === "failed" && state.status !== "failed"){
+    //if failed then hard stopped
+    if (derived === "failed"){ // ✅ change #1
         setIngestionState(walletId, markStopped(state))
         stopIngestion(state.walletAddress)
+        stopHeartbeat(walletId)
+        clearWSState(walletId)
+        return
     }
 
     // if lagging then ensure RPC backfill 
     if (derived === "lagging" && state.status !== "lagging"){
         setIngestionState(walletId, markLagging(state))
-            //RPC bacfill will be triggered by work logic later
-            triggerRPCBackfill(walletId)
+        triggerRPCBackfill(walletId)
         return 
     }
 
@@ -121,7 +122,7 @@ export function startReconciler(){
 export async function triggerRPCBackfill(walletId : string){
     const state = getIngestionState(walletId)
 
-    // gaurd alredy backfilling
+    // guard already backfilling
     if (state.rpcBackFillInProgress){return}
 
     setIngestionState(walletId, {
@@ -135,6 +136,13 @@ export async function triggerRPCBackfill(walletId : string){
     }catch(err){
         const errored = markError(getIngestionState(walletId))
         setIngestionState(walletId, errored)
+    } finally {
+        const s = getIngestionState(walletId)
+        setIngestionState(walletId, { 
+            ...s,
+            rpcBackFillInProgress: false,
+            updatedAt: new Date()
+        })
     }
 }
 
@@ -146,26 +154,19 @@ export async function runRPCBackfill (walletId : string){
         if (state.status === "stopped") return
         if (state.errorCount >= 3) return
 
-        //placeholer : fetch conditions after 
-        //{ lastprocessedSlot, lastprocessedSignatuer}
-        //const txs = await fecthfromRPC
-
         const txs : Array<{
             slot : number
             signature : string
         }> =[]
 
         if (txs.length === 0){
-            //caugth up
             const caughtUp = markCaughtUp(state)
             setIngestionState(walletId, caughtUp)
-            return 
+            return
         }
 
-        //update cursor using last tx
         const last = txs[txs.length- 1]
-        
-        if (!last) {return} //did this because typescript wont shut up
+        if (!last) {return}
 
         setIngestionState(walletId, {
             ...state,
@@ -184,12 +185,16 @@ type WSTransaction = {
 
 // Get wallet unordered buffer
 const wsBuffer: Map<string, WSTransaction[]> = new Map()
-// Per wallet dedupe set (fixed type)
+// Per wallet dedupe set
 const wsSeen: Map<string, Set<string>> = new Map()
 
-// Constants for buffer management
 const MAX_BUFFER_SIZE = 1000
 const MAX_SEEN_SIZE = 5000
+
+function clearWSState(walletId: string){ // ✅ change #3
+    wsBuffer.delete(walletId)
+    wsSeen.delete(walletId)
+}
 
 export function handleWSTransaction(
   walletId: string,
@@ -200,10 +205,8 @@ export function handleWSTransaction(
     return
   }
   
-  // Heartbeat on any WS activity
   setIngestionState(walletId, markHeartbeat(state))
   
-  // Ignore old data
   if (tx.slot <= state.lastProcessedSlot) {
     return
   }
@@ -231,22 +234,19 @@ export function bufferTransaction(walletId: string, tx: WSTransaction): void {
   seen.add(key)
   buffer.push(tx)
   
-  // Prevent unbounded growth
   if (buffer.length > MAX_BUFFER_SIZE) {
-    buffer.shift() // Remove oldest
+    buffer.shift()
   }
   
-  // Clean up seen set if it gets too large
   if (seen.size > MAX_SEEN_SIZE) {
     const sortedBuffer = [...buffer].sort((a, b) => a.slot - b.slot)
     const minSlot = sortedBuffer[0]?.slot ?? tx.slot
     
-    // Remove entries for slots we've moved past
     for (const seenKey of seen) {
       const slotStr = seenKey.split(':')[0]
-      if (slotStr) {  // Check if defined
+      if (slotStr) {
         const slot = parseInt(slotStr, 10)
-        if (!isNaN(slot) && slot < minSlot - 100) { // Keep some history
+        if (!isNaN(slot) && slot < minSlot - 100) {
           seen.delete(seenKey)
         }
       }
@@ -282,7 +282,6 @@ export function flushBuffer(walletId: string): void {
   
   buffer.splice(0, consumed)
   
-  // Check if there's a gap after consuming transactions
   const nextTx = buffer[0]
   if (nextTx && nextTx.slot > cursor + 1) {
     setIngestionState(walletId, markLagging(state))
