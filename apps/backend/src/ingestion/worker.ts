@@ -5,7 +5,6 @@
 import { deriveIngestionState, markStopped, stopIngestion } from "./ingestion"
 import { getIngestionState, setIngestionState, walletStore } from "../state/wallet.store"
 import { markLagging, markCaughtUp, markError, markHeartbeat } from "./ingestion"
-import { array } from "zod"
 
 const HEARTBEAT_INTERVAL_MS = 5_000
 
@@ -176,4 +175,33 @@ export async function runRPCBackfill (walletId : string){
         })
         state = getIngestionState(walletId)
     }
+}
+
+type WSTransaction = {
+    slot : number,
+    signature : string
+}
+
+export function handleWSTransaction (walletId: string, tx : WSTransaction) {
+
+    const state = getIngestionState(walletId)
+
+    //gaurds
+    if (state.status === "failed" || state.status === "stopped")
+        {return} 
+
+    // upadate hearbeat after a WS activity
+    setIngestionState(walletId, markHeartbeat(state))
+
+    const lastSlot = state.lastProcessedSlot
+
+    //first tx ever:
+    if (lastSlot === null){setIngestionState(walletId, {
+        ...state,
+        lastProcessedSlot: tx.slot,
+        lastProcessedSignature: tx.signature,
+        updatedAt: new Date()
+    })
+    return 
+}
 }
