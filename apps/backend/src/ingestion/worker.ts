@@ -5,6 +5,7 @@
 import { deriveIngestionState, markStopped, stopIngestion } from "./ingestion"
 import { getIngestionState, setIngestionState, walletStore } from "../state/wallet.store"
 import { markLagging, markCaughtUp, markError, markHeartbeat } from "./ingestion"
+import { array } from "zod"
 
 const HEARTBEAT_INTERVAL_MS = 5_000
 
@@ -130,7 +131,7 @@ export async function triggerRPCBackfill(walletId : string){
     })
 
     try {
-        await runRPCBackfill
+        await runRPCBackfill(walletId)
     }catch(err){
         const errored = markError(getIngestionState(walletId))
         setIngestionState(walletId, errored)
@@ -139,5 +140,39 @@ export async function triggerRPCBackfill(walletId : string){
 
 //this function runs RPC backfill
 export async function runRPCBackfill (walletId : string){
+    let state = getIngestionState(walletId)
 
+    while (true){
+        if (state.status === "stopped") return
+        if (state.errorCount >= 3) return
+
+        //placeholer : fetch conditions after 
+        //{ lastprocessedSlot, lastprocessedSignatuer}
+        //const txs = await fecthfromRPC
+
+        const txs : Array<{
+            slot : number
+            signature : string
+        }> =[]
+
+        if (txs.length === 0){
+            //caugth up
+            const caughtUp = markCaughtUp(state)
+            setIngestionState(walletId, caughtUp)
+            return 
+        }
+
+        //update cursor using last tx
+        const last = txs[txs.length- 1]
+        
+        if (!last) {return} //did this because typescript wont shut up
+
+        setIngestionState(walletId, {
+            ...state,
+            lastProcessedSlot: last.slot,
+            lastProcessedSignature: last.signature,
+            updatedAt: new Date()
+        })
+        state = getIngestionState(walletId)
+    }
 }
