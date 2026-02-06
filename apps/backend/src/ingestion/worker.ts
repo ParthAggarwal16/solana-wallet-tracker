@@ -201,7 +201,28 @@ export function handleWSTransaction (walletId: string, tx : WSTransaction) {
         lastProcessedSlot: tx.slot,
         lastProcessedSignature: tx.signature,
         updatedAt: new Date()
-    })
-    return 
-}
+        })
+        return 
+    }
+
+    //normal forward progression
+    if (tx.slot = lastSlot + 1){
+        setIngestionState(walletId, {
+            ...state,
+            lastProcessedSlot: tx.slot,
+            lastProcessedSignature: tx.signature,
+            updatedAt: new Date()
+        })
+        return
+    }
+
+    //duplicate or old tx = ingnore
+    if (tx.slot <= lastSlot){
+        return
+    }
+
+    //GAP detected 
+    //ws skipped slots then trigger RPCbackfill
+    setIngestionState(walletId, markLagging(state))
+    triggerRPCBackfill(walletId)
 }
