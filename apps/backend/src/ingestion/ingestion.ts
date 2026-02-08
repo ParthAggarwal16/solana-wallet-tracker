@@ -181,6 +181,9 @@ export function deriveIngestionState(
   if (input.lastHeartbeatAt !== null && Date.now() - input.lastHeartbeatAt > 30_000) {
     return "lagging"
   }
+  if (input.rpcBackFillInProgress){
+    return "lagging"
+  }
 
   return "healthy"
 }
@@ -190,4 +193,5 @@ export type IngestionDerivationInput = {
   lastProcessedSlot: number
   lastHeartbeatAt: number | null
   errorCount: number
+  rpcBackFillInProgress: boolean
 }

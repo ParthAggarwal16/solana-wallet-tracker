@@ -145,7 +145,8 @@ export const listWallets = async(userId : string) => {
             status: ingestion.status,
             lastProcessedSlot: ingestion.lastProcessedSlot,
             lastHeartbeatAt: ingestion.lastHeartbeatAt,
-            errorCount: ingestion.errorCount
+            errorCount: ingestion.errorCount,
+            rpcBackFillInProgress: ingestion.rpcBackFillInProgress
         })
         // attach lastProcessedSlot
         userWallets.push ({

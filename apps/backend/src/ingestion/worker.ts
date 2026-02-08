@@ -43,7 +43,8 @@ export function startIngestionHealthSweeper(intervalMS = 5_000){
                 status : state.status,
                 lastHeartbeatAt: state.lastHeartbeatAt,
                 lastProcessedSlot: state.lastProcessedSlot,
-                errorCount : state.errorCount
+                errorCount : state.errorCount,
+                rpcBackFillInProgress : state.rpcBackFillInProgress
             })
 
             // state transitions
@@ -82,7 +83,8 @@ export function reconcileWallet (walletId : string){
         status : state.status,
         lastHeartbeatAt : state.lastHeartbeatAt,
         lastProcessedSlot : state.lastProcessedSlot,
-        errorCount : state.errorCount
+        errorCount : state.errorCount,
+        rpcBackFillInProgress: state.rpcBackFillInProgress
     })
 
     //if failed then hard stopped
@@ -202,6 +204,10 @@ export function handleWSTransaction(
 ) {
   const state = getIngestionState(walletId)
   if (state.status === "stopped" || state.status === "failed") {
+    return
+  }
+
+  if (state.status === "healthy" || state.status !== "lagging"){
     return
   }
   
