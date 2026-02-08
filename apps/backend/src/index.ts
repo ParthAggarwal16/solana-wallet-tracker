@@ -4,6 +4,7 @@
 // start listening to a port
 
 import fastify from 'fastify'
+import { startReconciler, startIngestionHealthSweeper } from './ingestion/worker'
 
 const server = fastify()
 
@@ -21,3 +22,6 @@ server.listen ({ port : 8080 }, (err, address) =>{
     }
     console.log (`server listening at ${address}`)
 });
+
+startIngestionHealthSweeper()
+startReconciler()
