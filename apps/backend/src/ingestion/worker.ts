@@ -198,16 +198,13 @@ function clearWSState(walletId: string){ // ✅ change #3
     wsSeen.delete(walletId)
 }
 
-export function handleWSTransaction(
-  walletId: string,
-  tx: WSTransaction
-) {
+export function handleWSTransaction(walletId: string, tx: WSTransaction) {
   const state = getIngestionState(walletId)
   if (state.status === "stopped" || state.status === "failed") {
     return
   }
 
-  if (state.status === "healthy" || state.status !== "lagging"){
+  if (state.status !== "healthy" && state.status !== "lagging"){
     return
   }
   
