@@ -17,3 +17,12 @@ export function loadState <T>(): T | null{
     }
 
 }
+
+export function persistState <T>(state: T) {
+    if (!fs.existsSync(DATA_DIR)){
+        fs.mkdirSync(DATA_DIR, {recursive : true})
+    }
+    fs.writeFileSync(TMP_FILE, JSON.stringify(state, null, 2))
+    fs.renameSync(TMP_FILE, STATE_FILE)
+
+}
