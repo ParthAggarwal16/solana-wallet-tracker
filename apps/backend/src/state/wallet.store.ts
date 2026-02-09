@@ -26,7 +26,13 @@ export function getIngestionState(walletId: string): IngestionState {
 }
 
 export function setIngestionState (walletId : string, nextState: IngestionState) {
+    const prev = ingestionStore.get(walletId)
+
+    if (prev && nextState.lastProcessedSlot < prev.lastProcessedSlot ){
+        throw new Error ("invariant voilated : slot regression")
+    }
     ingestionStore.set(walletId, nextState)
+    persistAll()
 }
 
 export const addWallet = async(userId : string , address : string) => {
