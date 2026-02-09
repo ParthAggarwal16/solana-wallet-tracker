@@ -195,10 +195,14 @@ function isValidSolanaAddress (address : string) {
 
 }
 
-const perisited = loadState<Record<string, IngestionState>>()
-if (perisited){
-    for (const [id, state] of Object.entries(perisited)){
-        ingestionStore.set(id, state)
+const persisted = loadState<Record<string, IngestionState>>()
+if (persisted){
+    for (const [id, state] of Object.entries(persisted)){
+        // convert date string back to Date object
+        ingestionStore.set(id, {
+            ...state,
+            updatedAt: new Date(state.updatedAt)
+        })
     }
 }
 
