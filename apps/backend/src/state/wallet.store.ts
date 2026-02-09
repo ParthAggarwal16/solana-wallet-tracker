@@ -3,6 +3,8 @@
 import type { Wallet, IngestionState, IngestionStatus } from "../models"
 import { deriveIngestionState, startIngestion, stopIngestion, createInitialIngestionState, markStopped } from "../ingestion/ingestion"
 import { PublicKey } from "@solana/web3.js"
+import { persistState, loadState } from "./persistence"
+import { object } from "zod"
 
 // addWallet(userId, address)
 // removeWallet(walletId)
@@ -185,4 +187,15 @@ function isValidSolanaAddress (address : string) {
         return false
     }
 
+}
+
+const perisited = loadState<Record<string, IngestionState>>()
+if (perisited){
+    for (const [id, state] of Object.entries(perisited)){
+        ingestionStore.set(id, state)
+    }
+}
+
+function persistAll(){
+    persistState(Object.fromEntries(ingestionStore.entries()))
 }
