@@ -18,7 +18,7 @@ export function startHeartbeat (walletId : string){
         const state = getIngestionState(walletId)
 
         if (state.status === "stopped" || state.status === "failed"){
-            stopIngestion(walletId)
+            stopIngestion(state.walletAddress)
             stopHeartbeat(walletId) 
             clearWSState(walletId)  
             return
@@ -88,7 +88,7 @@ export function reconcileWallet (walletId : string){
     })
 
     //if failed then hard stopped
-    if (derived === "failed"){ // ✅ change #1
+    if (derived === "failed"){ 
         setIngestionState(walletId, markStopped(state))
         stopIngestion(state.walletAddress)
         stopHeartbeat(walletId)
@@ -193,7 +193,7 @@ const wsSeen: Map<string, Set<string>> = new Map()
 const MAX_BUFFER_SIZE = 1000
 const MAX_SEEN_SIZE = 5000
 
-function clearWSState(walletId: string){ // ✅ change #3
+function clearWSState(walletId: string){ 
     wsBuffer.delete(walletId)
     wsSeen.delete(walletId)
 }
